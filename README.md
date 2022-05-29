@@ -1,6 +1,7 @@
 # Welcome to the eartquake prediction project !
 
 This is a Deep Learning Class Project carried at ESPCI under the supervision of Professor Alexandre Allauzen.
+Team members: Matthieu Dagommer, Paul Boulgakoff, Godefroy Bichon, Germain L'Hostis
 
 ## Description
 
@@ -24,6 +25,11 @@ Check that you are able to launch python from your Git Bash shell.
     python --version
 
 If that's not the case, this blog explains how to set it up : https://prishitakapoor2.medium.com/configuring-git-bash-to-run-python-for-windows-a624aa4ae2c5
+Check that you are using a virtual environment with the following versions:
+
+
+Python : 3.10.4
+Torch : 1.11
 
 ## Retrieve the data
 
