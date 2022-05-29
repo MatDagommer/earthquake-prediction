@@ -1,6 +1,8 @@
 # Welcome to the eartquake prediction project !
 
 This is a Deep Learning Class Project carried at ESPCI under the supervision of Professor Alexandre Allauzen.
+
+
 Team members: Matthieu Dagommer, Paul Boulgakoff, Godefroy Bichon, Germain L'Hostis
 
 ## Description
