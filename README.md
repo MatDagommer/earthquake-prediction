@@ -51,4 +51,4 @@ For instance, if you want to train a 1D CNN with 1000 epochs, a batch size of 30
 The program will eventually ask you to name the model you have just trained so it can save its features in Models/<model_name>.
 A Matplotlib window should pop up with both the learning curve of your training and the distribution of error from the validation set at the best epoch.
 
-![alt text](mol_dyn.PNG)
+![alt text](Cnn1d_2_plot.jpg)
