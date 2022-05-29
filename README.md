@@ -8,12 +8,15 @@ Team members: Matthieu Dagommer, Paul Boulgakoff, Godefroy Bichon, Germain L'Hos
 ## Description
 
 We propose two solutions to the deep learning challenge "LANL earthquake prediction". 
+
 See more information on the webpage : https://www.kaggle.com/c/LANL-Earthquake-Prediction
+
 If you are comfortable with French language, feel free to read our report !
 
 ## Launch in Kaggle
 
 You can directly access the notebook in Kaggle via this link: https://www.kaggle.com/matthieudagommer/earthquake-prediction
+
 You can also run the code locally by cloning this repository, either the notebook or the modular Python version. 
 
 ## Retrieve the code
@@ -27,6 +30,7 @@ Check that you are able to launch python from your Git Bash shell.
     python --version
 
 If that's not the case, this blog explains how to set it up : https://prishitakapoor2.medium.com/configuring-git-bash-to-run-python-for-windows-a624aa4ae2c5
+
 Check that you are using a virtual environment with the following versions:
 
 
@@ -36,6 +40,7 @@ Torch : 1.11
 ## Retrieve the data
 
 To retrieve the data, go to https://www.kaggle.com/competitions/LANL-Earthquake-Prediction/data and click "Download".
+
 You will have to unzip the content in the same folder as the scripts of this project.
 
 ## Train a new model (with the .py files)
@@ -57,6 +62,7 @@ For instance, if you want to train a 1D CNN with 1000 epochs, a batch size of 30
 ## Output
 
 The program will eventually ask you to name the model you have just trained so it can save its features in Models/<model_name>.
+
 A Matplotlib window should pop up with both the learning curve of your training and the distribution of error from the validation set at the best epoch.
 
 ![alt text](Cnn1d_2_plot.jpg)
