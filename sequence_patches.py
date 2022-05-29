@@ -3,7 +3,7 @@
 import numpy as np
 import torch as th
 
-# Le recouvrement est exprimé en proportion de la taille d'une fenêtre (time_window)
+# Overlap is expressed as a fraction of patch size
 def sequence_patches(size_patch, X, Y, overlap_rate):
     
     overlap = int(size_patch*overlap_rate)
@@ -18,7 +18,7 @@ def sequence_patches(size_patch, X, Y, overlap_rate):
         X_patch[i,:] = X[i*(size_patch-overlap):(i+1)*size_patch-i*overlap] 
         Y_patch[i] = Y[(i+1)*size_patch - i*overlap] 
     
-        # Relever les patchs qui ne contiennent pas de séisme
+        # Remove patches with no seism
         if th.min(Y[i*(size_patch-overlap):(i+1)*size_patch - i*overlap]) > 0.001:
             ids_no_seism.append(i)
     
