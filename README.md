@@ -1,12 +1,19 @@
 # Welcome to the eartquake prediction project !
 
-Deep Learning Class Project at ESPCI under the supervision of Prof. Alexandre Allauzen.
+This is a Deep Learning Class Project carried at ESPCI under the supervision of Professor Alexandre Allauzen.
 
 ## Description
 
-Kaggle LANL Eartquake Prediction challenge : https://www.kaggle.com/c/LANL-Earthquake-Prediction
+We propose two solutions to the deep learning challenge "LANL earthquake prediction". 
+See more information on the webpage : https://www.kaggle.com/c/LANL-Earthquake-Prediction
+If you are comfortable with French language, feel free to read our report !
 
-## Run the code
+## Launch in Kaggle
+
+You can directly access the notebook in Kaggle via this link: https://www.kaggle.com/matthieudagommer/earthquake-prediction
+You can also run the code locally by cloning this repository, either the notebook or the modular Python version. 
+
+## Retrieve the code
 
 To download the repo via git, type:
 
@@ -18,7 +25,12 @@ Check that you are able to launch python from your Git Bash shell.
 
 If that's not the case, this blog explains how to set it up : https://prishitakapoor2.medium.com/configuring-git-bash-to-run-python-for-windows-a624aa4ae2c5
 
-## Train a new model
+## Retrieve the data
+
+To retrieve the data, go to https://www.kaggle.com/competitions/LANL-Earthquake-Prediction/data and click "Download".
+You will have to unzip the content in the same folder as the scripts of this project.
+
+## Train a new model (with the .py files)
 
 In the Git Bash, you can run the program with default parameters with the following command. 
 
@@ -33,3 +45,8 @@ There are several parameters you can play with to customize the training. You ca
 For instance, if you want to train a 1D CNN with 1000 epochs, a batch size of 300 and a learning rate of 0.001, you can type:
     
     python main.py -ep 1000 -bs 300 -lr 0.0001
+    
+## Output
+
+The program will eventually ask you to name the model you have just trained so it can save its features in Models/<model_name>.
+A Matplotlib window should pop up with both the learning curve of your training and the distribution of error from the validation set at the best epoch.
