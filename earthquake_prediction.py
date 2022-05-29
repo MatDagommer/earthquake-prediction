@@ -34,17 +34,19 @@ from Cnn1d import Cnn1d
 from check_accuracy import check_accuracy
 from Lstm import Lstm
 from lstm_feature_engineering import lstm_feature_engineering
+from train_model import train_model
 
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("model_id", type=int, help="choose model: 0 for CNN 1D, 1 for LSTM.")
-parser.add_argument("-n", "--n_rows", help = "number of rows for training", default = 200_000_000)
-parser.add_argument("-vr", "--valid_ratio", help="validation ratio. Default: 0.1", default = 0.1)
-parser.add_argument("-lr", "--learning_rate", help="learning rate. Default: 0.0001", default = 0.0001)
-parser.add_argument("-ep", "--num_epochs", help="number of epochs. Default: 500", default = 100)
-parser.add_argument("-bs", "--batch_size", help="batch size or number of samples per batch. Default: 100", default = 100)
-parser.add_argument("-o", "--overlap_rate", help="overlap rate. Default = 0.2", default = 0.2)
-parser.add_argument("-s", "--seed", help = "seed for random numbers", default = 0)
+parser.add_argument("-n", "--n_rows", type = int, help = "number of rows for training", default = 200_000_000)
+parser.add_argument("-vr", "--valid_ratio", type = float, help="validation ratio. Default: 0.1", default = 0.1)
+parser.add_argument("-lr", "--learning_rate", type = float, help="learning rate. Default: 0.0001", default = 0.0001)
+parser.add_argument("-ep", "--num_epochs", type=int, help="number of epochs. Default: 500", default = 100)
+parser.add_argument("-bs", "--batch_size", type=int, help="batch size or number of samples per batch. Default: 100", default = 100)
+parser.add_argument("-o", "--overlap_rate", type = float, help="overlap rate. Default = 0.2", default = 0.2)
+parser.add_argument("-s", "--seed", type=int, help = "seed for random numbers", default = 0)
+parser.add_argument("-nsp", "--N_subpatches", type=int, help = "number of subpatches for lstm engineered sequences", default = 250)
 args = parser.parse_args()
 
 
@@ -52,6 +54,11 @@ seed = args.seed
 th.manual_seed(seed)
 np.random.seed(seed)
 
+### Ensure CPU is connected
+
+print("\nCuda available: ", th.cuda.is_available())
+print("Device Name: ", th.cuda.get_device_name(), "\n")
+device = th.device('cuda' if th.cuda.is_available() else 'cpu')
 
 # Model
 
@@ -70,24 +77,21 @@ learning_rate = args.learning_rate
 num_epochs = args.num_epochs
 batch_size = args.batch_size # number of samples per batch
 overlap_rate = args.overlap_rate
+N_subpatches = args.N_subpatches
 
 
-print("\nTraining Model with Parameters:\n\nLearning Rate: {}\nEpochs: {}\nBatch Size: {}\nOverlap Rate: {}\nValidation Ratio: {}\n".format(learning_rate, num_epochs, batch_size, overlap_rate, valid_ratio))
+print("Training Model with Parameters:\n\nLearning Rate: {}\nEpochs: {}\nBatch Size: {}\nOverlap Rate: {}\nValidation Ratio: {}\n".format(learning_rate, num_epochs, batch_size, overlap_rate, valid_ratio))
 
-### Ensure CPU is connected
-
-print("Cuda available: ", th.cuda.is_available())
-print("Device Name: ", th.cuda.get_device_name())
-device = th.device('cuda' if th.cuda.is_available() else 'cpu')
 
 ### Load Data
 
 rootpath = os.getcwd() + "/"
 
+print("Loading Data...")
 print("Loading Data: ", end="")
 train_data = pd.read_csv(rootpath + "train.csv", usecols = ['acoustic_data', 'time_to_failure'], \
                          dtype = {'acoustic_data': np.int16, 'time_to_failure': np.float64}, nrows = nrows)
-print("Done.")
+print("Done.\n")
 
 X = th.squeeze(th.tensor(train_data['acoustic_data'].values, dtype = th.int16))
 Y = th.squeeze(th.tensor(train_data['time_to_failure'].values, dtype = th.float64))
@@ -117,7 +121,6 @@ _, X_patch, Y_patch = sequence_patches(patch_size, X, Y, overlap_rate = overlap_
 
 del X; del Y; gc.collect()
 
-print(X_patch.shape)
 print("There are ", X_patch.shape[0], "time series available for training and validation after patching with overlap. \n")
 
 
@@ -147,167 +150,21 @@ N_train = X_train.shape[0]
 X_train = X_train.reshape([N_train, 1, patch_size])
 
 
-### Initialize Network, Define Loss and optimizer
+### Train Model
 
-if model_id == "CNN": # CNN 1D
+if model_id == "LSTM":
+    print("Engineering Input Data...")
+    print("Engineering Input Data: ", end = "")
+    X_train, Y_train, X_valid, Y_valid = \
+        lstm_feature_engineering(X_train, Y_train, X_valid, Y_valid, patch_size, N_sub_patches = N_subpatches)
+    print("Done.\n")
 
-    n_batch = int(X_train.shape[0] / batch_size) # total number of batches
+N_samples = X_train.shape[0]
+n_batch = int(X_train.shape[0] / batch_size)
 
-    model = Cnn1d()
-    model.to(device)
-
-elif model_id == "LSTM": # LSTM
-
-    # Hyperparameters
-    hidden_size = 1 #number of features in hidden state
-    num_layers = 1 #number of stacked lstm layers => should stay at 1 unless you want to combine two LSTMs together
-    N_sub_patches = 250
-
-    X_train_, Y_train_, X_valid_, Y_valid_ = \
-        lstm_feature_engineering(X_train, Y_train, X_valid, Y_valid, patch_size, N_sub_patches = N_sub_patches)
-    N_features = X_train_.shape[-1]
-    L_seq = X_train_.shape[2]
-    model = Lstm(N_features, hidden_size, num_layers, L_seq) #our lstm class
-    
-
-loss = th.nn.MSELoss()    # mean-squared error for regression
-optimizer = th.optim.Adam(model.parameters(), lr=learning_rate) 
-
-
-
-### Train network
-
-th.cuda.empty_cache()
-if model_id == "CNN": # CNN 1D
-
-    train_losses, valid_losses = [], []
-
-    best_mvd = [] # valid differences at best epoch
-    best_mtd = [] # training differences at best epoch
-    min_vl = 1000
-    min_tl = 1000
-
-    N_train_per_epoch = n_batch*batch_size 
-
-    start = time.perf_counter()
-
-    for epoch in range(num_epochs):
-
-        th.cuda.empty_cache()
-        
-        # Generating Random Batches every epoch
-        random_idx = np.random.randint(0, N_train, N_train_per_epoch)
-        X_train_batch = th.reshape(X_train[random_idx], [n_batch, batch_size, 1, patch_size])
-        Y_train_batch = th.reshape(Y_train[random_idx], [n_batch, batch_size, 1, 1])
-        
-        running_loss = 0
-        _loss = 0
-
-        for ids in range (n_batch):
-            
-            # Setting gradients to zero
-            optimizer.zero_grad()
-            # Model prediction
-            predicted_ttfs = th.squeeze(model(X_train_batch[ids].to(device))).cpu()
-            # Loss function
-            _loss = loss(predicted_ttfs, th.squeeze(Y_train_batch[ids]))
-            
-            del predicted_ttfs
-            gc.collect()
-            
-            # Backpropagation
-            _loss.backward()
-            running_loss += _loss.item()
-            
-            # Updating model weights
-            optimizer.step()
-            
-        optimizer.zero_grad()
-        th.cuda.empty_cache()
-        
-        # Turning evaluation mode ON (No Dropout / BatchNorm layers)
-        model.eval()
-
-        with th.no_grad():
-            valid_loss, valid_differences = check_accuracy(X_valid, Y_valid, model)
-            valid_losses.append(valid_loss)
-            train_losses.append(running_loss / n_batch)
-            
-            if valid_loss < min_vl:
-                
-                min_vl = valid_loss
-                min_tl = running_loss
-                
-                best_mvd = valid_differences
-                
-                Y_final = th.squeeze(model(X_train[:int(N_train/10)].to(device))).cpu()
-                
-                best_mtd = Y_train[:int(N_train/10)] - Y_final[:]
-                best_mtd = best_mtd.cpu().detach().numpy()
-        
-        # Turning training mode back on
-        model.train()
-        
-        if epoch%10 == 0:
-            print("Epoch: {}\t".format(epoch),
-                    "train Loss: {:.5f}.. ".format(train_losses[-1]),
-                    "valid Loss: {:.5f}.. ".format(valid_losses[-1])) 
-
-    print("---------- Best : {:.3f}".format(min(valid_losses)), " at epoch " 
-        , np.fromiter(valid_losses, dtype=float).argmin(), " / ", epoch + 1)
-
-
-
-elif model_id == "LSTM": # LSTM
-
-    # Training LSTM
-
-    valid_losses = np.zeros((num_epochs))
-    train_losses = np.zeros((num_epochs))
-
-    min_vl = 1000
-
-    best_mvd = []
-    best_mtd = []
-
-    for epoch in range(num_epochs):
-        outputs = model.forward(X_train_) #forward pass
-        optimizer.zero_grad() #caluclate the gradient, manually setting to 0
-        # obtain the loss function
-        loss = loss(outputs, Y_train_)
-    
-        loss.backward() #calculates the loss of the loss function
-
-        train_loss = loss.item()
-        train_losses[epoch] = train_loss
-
-        with th.no_grad():
-            
-            valid_output = model(X_valid_)
-            valid_loss = loss(valid_output, Y_valid_)
-            valid_losses[epoch] = valid_loss.item()
-            valid_differences = valid_output - Y_valid_
-
-            if valid_loss < min_vl:
-
-                min_vl = valid_loss
-                min_tl = train_loss
-
-                best_mvd = valid_differences
-
-                Y_final = model(X_train_)
-
-                best_mtd = Y_train_ - Y_final
-                best_mtd = best_mtd.numpy()
-            
-    
-        optimizer.step()
-        if (epoch + 1) % 100 == 0:
-            print("Epoch: %d, loss: %1.5f" % (epoch, loss.item())) 
-
-
-end = time.perf_counter()
-print("\ntime elapsed: {:.3f}\n".format(end - start))
+print("Training the model..\n")
+model, train_losses, valid_losses, valid_differences, best_mvd, best_mtd, min_tl, min_vl = \
+    train_model(n_batch, batch_size, patch_size, num_epochs, learning_rate, model_id, X_train, Y_train, X_valid, Y_valid)
 
 
 model_name = input("Choose a name for the model: ")
