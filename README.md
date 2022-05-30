@@ -3,19 +3,19 @@
 This is a Deep Learning Class Project carried at ESPCI under the supervision of Professor Alexandre Allauzen.
 
 
-Team members: Matthieu Dagommer, Paul Boulgakoff, Godefroy Bichon, Germain L'Hostis
+Team members: Matthieu Dagommer, Paul Boulgakoff, Godefroy Bichon, Germain L'Hostis.
 
 ## Description
 
 We propose two solutions to the deep learning challenge "LANL earthquake prediction". 
-See more information on the webpage : https://www.kaggle.com/c/LANL-Earthquake-Prediction
+See more information on the webpage : https://www.kaggle.com/c/LANL-Earthquake-Prediction.
 If you are comfortable with French language, feel free to read our report !
 
 ## Launch in Kaggle
 
 You can directly access the notebooks in Kaggle via these two links: 
-CNN 1D: https://www.kaggle.com/code/matthieudagommer/earthquake-prediction-cnn1d
-LSTM: https://www.kaggle.com/code/matthieudagommer/earthquake-prediction-lstm
+CNN 1D: https://www.kaggle.com/code/matthieudagommer/earthquake-prediction-cnn1d.
+LSTM: https://www.kaggle.com/code/matthieudagommer/earthquake-prediction-lstm.
 
 You can also run the code locally by cloning this repository, either the notebook or the modular Python version. 
 
@@ -29,7 +29,7 @@ Check that you are able to launch python from your Git Bash shell.
 
     python --version
 
-If that's not the case, this blog explains how to set it up : https://prishitakapoor2.medium.com/configuring-git-bash-to-run-python-for-windows-a624aa4ae2c5
+If that's not the case, this blog explains how to set it up : https://prishitakapoor2.medium.com/configuring-git-bash-to-run-python-for-windows-a624aa4ae2c5.
 Check that you are using a virtual environment with the following versions:
 
 
