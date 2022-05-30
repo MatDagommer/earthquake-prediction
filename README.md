@@ -16,7 +16,9 @@ If you are comfortable with French language, feel free to read our report !
 ## Launch in Kaggle
 
 You can directly access the notebooks in Kaggle via these two links: 
+
 CNN 1D: https://www.kaggle.com/code/matthieudagommer/earthquake-prediction-cnn1d
+
 LSTM: https://www.kaggle.com/code/matthieudagommer/earthquake-prediction-lstm
 
 You can also run the code locally by cloning this repository, either the notebook or the modular Python version. 
