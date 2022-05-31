@@ -54,7 +54,7 @@ There are several parameters you can play with to customize the training. You ca
     
 For instance, if you want to train a 1D CNN with 1000 epochs, a batch size of 300 and a learning rate of 0.001, you can type:
     
-    python main.py -ep 1000 -bs 300 -lr 0.0001
+    python main.py -model 0 -ep 1000 -bs 300 -lr 0.0001
     
 ## Output
 
