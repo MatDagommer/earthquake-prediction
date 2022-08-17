@@ -1,4 +1,4 @@
-# Welcome to the earthquake prediction project !
+# Earthquake prediction project
 
 This is a Deep Learning Class Project carried at ESPCI under the supervision of Professor Alexandre Allauzen.
 
